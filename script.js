@@ -5,13 +5,18 @@
 
   // defaults
   var default_width = 30;
+  var num_obstacles = 30;
+
+  // init objects
+  var strike = new Strike();
+  var obstacles = get_random_obstacles(num_obstacles);
 
   function Strike() {
     this.x = Math.floor(Math.random() * Math.floor(canvas.width));
-    this.y = 0;
+    this.y = -default_width; // ensures bottom of strike starts at 0
     this.width = default_width;
     this.height = default_width;
-    this.velocity = 2;
+    this.velocity = 1;
     this.color = 'white';
 
     this.draw = function() {
@@ -20,11 +25,34 @@
     }
 
     this.move = function() {
-      // if overlaps same x+height/y with obstacle, move left/right this.width
-      // left if on the right side of the board
-      // right if on the left side of the board
+      var on_left = this.x <= canvas.width / 2;
+      var strike_bottom = this.y + this.height;
+      var sR = this.x + this.width;
+      var sL = this.x;
 
-      this.y += this.velocity;
+      // check if hit horizontal obstacle
+      var hit_hor_obstacle = obstacles.find(function(obstacle) {
+        var oR = obstacle.x + obstacle.width;
+        var oL = obstacle.x
+        return (
+          (obstacle.y === strike_bottom) &&
+          ((sR >= oL && sR <= oR) || (sL >= oL && sL <= oR))
+        )
+      })
+
+      if (hit_hor_obstacle) {
+        if (on_left) {
+          // move right if on the left side of the board
+          this.x += this.velocity;
+        } else {
+          // move left if on the right side of the board
+          this.x -= this.velocity;
+        }
+      // ADD HERE: elif hit_vert_obstacle
+      } else {
+        // move down
+        this.y += this.velocity;
+      }
     }
   }
 
@@ -53,10 +81,6 @@
 
     return obstacles_array;
   }
-
-  var strike = new Strike();
-  // init random 10px wide lines at various y-values in the canvas
-  var obstacles = get_random_obstacles(5);
 
   function lightningStrike() {
     if (strike.y == canvas.height) {
